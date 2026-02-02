@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>B2B Order Prototype</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{margin:0;font-family:system-ui;background:#f4f6f8}
+header{background:#0f766e;color:#fff;padding:14px 20px;font-size:18px}
+.container{padding:20px}
+.card{background:#fff;border-radius:10px;padding:16px;margin-bottom:20px;border:1px solid #e5e7eb}
+button{background:#0f766e;color:#fff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer}
+button.secondary{background:#e5e7eb;color:#111}
+input,select{width:100%;padding:8px;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.badge{padding:4px 10px;border-radius:20px;font-size:12px}
+.pending{background:#fde68a}
+.contact{background:#bfdbfe}
+.final{background:#bbf7d0}
+.confirm{background:#ddd6fe}
+.hidden{display:none}
+</style>
+</head>
+
+<body>
+<header>B2B Order & Quotation Prototype</header>
+
+<div class="container">
+
+<!-- PRODUCTS -->
+<div class="card">
+<h3>Products (Sample)</h3>
+<div class="grid" id="productList"></div>
+</div>
+
+<!-- CART -->
+<div class="card">
+<h3>Cart</h3>
+<div id="cart"></div>
+<button onclick="openCustomer()">Proceed</button>
+</div>
+
+<!-- CUSTOMER DETAILS -->
+<div class="card hidden" id="customerCard">
+<h3>Customer Details</h3>
+<input id="cname" placeholder="Customer Name">
+<input id="cphone" placeholder="Phone Number">
+<button onclick="generateOrder()">Generate Order Link</button>
+<p id="orderLink"></p>
+</div>
+
+<!-- ORDER VIEW -->
+<div class="card hidden" id="orderCard">
+<h3>Order Details</h3>
+<p><b>Status:</b> <span id="orderStatus" class="badge pending">Pending</span></p>
+<p><b>Payment:</b>
+<select id="payment">
+<option>Unpaid</option>
+<option>Partial Paid</option>
+<option>Paid</option>
+</select>
+</p>
+
+<h4>Shipping</h4>
+<select id="shipper" onchange="calcShipping()">
+<option value="">Select Company</option>
+<option value="50">FastShip (0–500g = ₹50)</option>
+<option value="80">SafeCargo (0–500g = ₹80)</option>
+</select>
+<p>Total Weight: <span id="weight">0</span> gm</p>
+<p>Shipping Cost: ₹ <span id="shipCost">0</span></p>
+
+<h4>Order Stage (Admin Control)</h4>
+<select id="stage" onchange="changeStage()">
+<option>Pending</option>
+<option>Contacted</option>
+<option>Quotation Finalized</option>
+<option>Order Confirmed</option>
+</select>
+
+<h4>Quotation History</h4>
+<ul>
+<li>QTN-001 – ₹12,000</li>
+<li>QTN-002 – ₹11,500</li>
+</ul>
+</div>
+
+</div>
+
+<script>
+const products=[
+{id:1,name:'Umbrella Fabric A',weight:200,active:true},
+{id:2,name:'Umbrella Fabric B',weight:350,active:true},
+{id:3,name:'Premium Handle',weight:150,active:false},
+];
+
+let cart=[], totalWeight=0;
+
+function loadProducts(){
+const list=document.getElementById('productList');
+products.forEach(p=>{
+list.innerHTML+=`
+<div class="card">
+<b>${p.name}</b><br>
+Weight: ${p.weight}g<br>
+Status: ${p.active?'Active':'Inactive'}<br>
+<button ${!p.active?'disabled':''} onclick="add(${p.id})">Add</button>
+</div>`;
+});
+}
+loadProducts();
+
+function add(id){
+const p=products.find(x=>x.id===id);
+cart.push(p);
+renderCart();
+}
+
+function renderCart(){
+totalWeight=cart.reduce((s,i)=>s+i.weight,0);
+document.getElementById('cart').innerHTML=
+cart.map(c=>`${c.name} (${c.weight}g)`).join('<br>');
+document.getElementById('weight').innerText=totalWeight;
+}
+
+function openCustomer(){
+if(!cart.length)return alert('Cart empty');
+document.getElementById('customerCard').classList.remove('hidden');
+}
+
+function generateOrder(){
+const id=Math.floor(Math.random()*100000);
+document.getElementById('orderLink').innerHTML=
+`Order Link: <b>site.com/order/${id}</b>`;
+document.getElementById('orderCard').classList.remove('hidden');
+}
+
+function calcShipping(){
+const rate=document.getElementById('shipper').value;
+document.getElementById('shipCost').innerText=rate;
+}
+
+function changeStage(){
+const s=document.getElementById('stage').value;
+const badge=document.getElementById('orderStatus');
+badge.innerText=s;
+badge.className='badge';
+if(s==='Pending')badge.classList.add('pending');
+if(s==='Contacted')badge.classList.add('contact');
+if(s==='Quotation Finalized')badge.classList.add('final');
+if(s==='Order Confirmed')badge.classList.add('confirm');
+}
+</script>
+
+</body>
+</html>
